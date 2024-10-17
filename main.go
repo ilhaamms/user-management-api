@@ -2,29 +2,28 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/ilhaamms/user-management-api/api"
 	"github.com/ilhaamms/user-management-api/config"
+	"github.com/ilhaamms/user-management-api/controller"
+	"github.com/ilhaamms/user-management-api/repository"
+	"github.com/ilhaamms/user-management-api/service"
 )
 
 func main() {
-
-	mux := http.NewServeMux()
 
 	db, err := config.GetConnection()
 	if err != nil {
 		log.Fatal("Error connecting to database: ", err)
 	}
 
-	db.Close()
+	defer db.Close()
 
-	mux.HandleFunc("/api/v1/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
-	})
+	userRepository := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepository)
+	userController := controller.NewUserController(userService)
 
-	log.Println("Server started on :8080")
-
-	http.ListenAndServe(":8080", mux)
-
+	api := api.NewAPI(userController)
+	api.Start()
 }
