@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  user-management-api:
+    container_name: user-management-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    image: user_management_img
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=ilham
+      - MYSQL_DATABASE=user_management_api
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+    ports:
+      - "8080:8080"
+    networks:
+      - user_management_network
+    depends_on:
+      - mysql
+
+  mysql:
+    container_name: mysql
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ilham
+      MYSQL_DATABASE: user_management_api
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - user_management_network
+
+volumes:
+  mysql_data:
+    name: mysql_data
+
+networks:
+  user_management_network:
+    name: user_management_network
+    driver: bridge
