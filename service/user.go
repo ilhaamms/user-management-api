@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"math"
 	"strings"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 type UserService interface {
 	Register(user request.UserRegister) (*response.UserRegisterResponse, error)
 	Login(user request.UserLogin) (*response.UserLoginResponse, error)
+	FindAll(page, limit int) (*[]response.User, int, error)
 }
 
 type userService struct {
@@ -101,4 +103,28 @@ func (s *userService) Login(user request.UserLogin) (*response.UserLoginResponse
 		Email: dbUser.Email,
 		Token: tokenString,
 	}, nil
+}
+
+func (s *userService) FindAll(page, limit int) (*[]response.User, int, error) {
+
+	users, err := s.userRepository.FindAll()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(users) == 0 {
+		return nil, 0, errors.New("users is empty")
+	}
+
+	startIndex := (page - 1) * limit
+	endIndex := int(math.Min(float64(startIndex+limit), float64(len(users))))
+	totalPages := int(math.Ceil(float64(len(users)) / float64(limit)))
+
+	if page > totalPages {
+		return nil, 0, errors.New("page sudah melebihi total page")
+	}
+
+	users = users[startIndex:endIndex]
+
+	return &users, totalPages, nil
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/ilhaamms/user-management-api/controller"
+	"github.com/ilhaamms/user-management-api/middleware"
 )
 
 type API struct {
@@ -19,9 +20,13 @@ func NewAPI(userController controller.UserController) *API {
 func (a *API) RegisterRoutes() *mux.Router {
 	mux := mux.NewRouter()
 
-	api := mux.PathPrefix("/api/v1").Subrouter()
-	api.HandleFunc("/user/register", a.userController.Register).Methods(http.MethodPost)
-	api.HandleFunc("/user/login", a.userController.Login).Methods(http.MethodPost)
+	auth := mux.PathPrefix("/api/v1/auth").Subrouter()
+	auth.HandleFunc("/register", a.userController.Register).Methods(http.MethodPost)
+	auth.HandleFunc("/login", a.userController.Login).Methods(http.MethodPost)
+
+	users := mux.PathPrefix("/api/v1").Subrouter()
+	users.Use(middleware.Auth)
+	users.HandleFunc("/users", a.userController.GetAllUsers).Methods(http.MethodGet)
 
 	return mux
 }

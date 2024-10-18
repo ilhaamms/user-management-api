@@ -25,3 +25,18 @@ func ResponseJsonSuccess(w http.ResponseWriter, statusCode int, message string, 
 		Data:       data,
 	})
 }
+
+func ResponseJsonSuccessWithPagination(w http.ResponseWriter, statusCode int, message string, page int, limit int, totalPage int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	json.NewEncoder(w).Encode(response.ResponseDataWithPagination{
+		StatusCode: statusCode,
+		Message:    message,
+		Pagination: response.Pagination{
+			CurrenPage: page,
+			TotalPage:  totalPage,
+			Limit:      limit,
+		},
+		Data: data,
+	})
+}

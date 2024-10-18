@@ -5,12 +5,14 @@ import (
 
 	"github.com/ilhaamms/user-management-api/models/entity"
 	"github.com/ilhaamms/user-management-api/models/request"
+	"github.com/ilhaamms/user-management-api/models/response"
 )
 
 type UserRepository interface {
-	Save(user request.UserRegister) (*entity.User, error)
-	FindByEmailRegister(email string) (entity.User, error)
+	Save(user request.UserRegister) (*response.UserRegisterResponse, error)
+	FindByEmailRegister(email string) (response.User, error)
 	FindByEmailLogin(email string) (*entity.User, error)
+	FindAll() ([]response.User, error)
 }
 
 type userRepository struct {
@@ -21,27 +23,25 @@ func NewUserRepository(db *sql.DB) UserRepository {
 	return &userRepository{db}
 }
 
-func (r *userRepository) Save(user request.UserRegister) (*entity.User, error) {
+func (r *userRepository) Save(user request.UserRegister) (*response.UserRegisterResponse, error) {
 	_, err := r.db.Exec("INSERT INTO user (name, email, password) VALUES (?, ?, ?)", user.Name, user.Email, user.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	dataUSer := &entity.User{
+	return &response.UserRegisterResponse{
 		Name:  user.Name,
 		Email: user.Email,
-	}
-
-	return dataUSer, nil
+	}, nil
 }
 
-func (r *userRepository) FindByEmailRegister(email string) (entity.User, error) {
+func (r *userRepository) FindByEmailRegister(email string) (response.User, error) {
 	row := r.db.QueryRow("SELECT name, email FROM user WHERE email = ?", email)
 
-	var user entity.User
+	var user response.User
 	err := row.Scan(&user.Name, &user.Email)
 	if err != nil {
-		return user, nil
+		return user, err
 	}
 
 	return user, nil
@@ -57,4 +57,24 @@ func (r *userRepository) FindByEmailLogin(email string) (*entity.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (r *userRepository) FindAll() ([]response.User, error) {
+	rows, err := r.db.Query("SELECT name, email FROM user")
+	if err != nil {
+		return nil, err
+	}
+
+	var users []response.User
+	for rows.Next() {
+		var user response.User
+		err := rows.Scan(&user.Name, &user.Email)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }

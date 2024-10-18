@@ -3,6 +3,8 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ilhaamms/user-management-api/helper"
@@ -13,6 +15,7 @@ import (
 type UserController interface {
 	Register(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
+	GetAllUsers(w http.ResponseWriter, r *http.Request)
 }
 
 type userController struct {
@@ -66,4 +69,29 @@ func (c *userController) Login(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 
 	helper.ResponseJsonSuccess(w, http.StatusOK, "Login success", data)
+}
+
+func (c *userController) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		limit = 5
+	}
+
+	data, totalPages, err := c.userService.FindAll(page, limit)
+	if err != nil {
+		if strings.Contains(err.Error(), "users is empty") {
+			helper.ResponseJsonSuccess(w, http.StatusOK, "Users is empty", data)
+			return
+		} else {
+			helper.ResponseJsonError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+	}
+
+	helper.ResponseJsonSuccessWithPagination(w, http.StatusOK, "Success get all users", page, limit, totalPages, data)
 }
