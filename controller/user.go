@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/ilhaamms/user-management-api/helper"
 	"github.com/ilhaamms/user-management-api/models/request"
 	"github.com/ilhaamms/user-management-api/service"
@@ -17,6 +18,7 @@ type UserController interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	GetAllUsers(w http.ResponseWriter, r *http.Request)
 	UpdateUser(w http.ResponseWriter, r *http.Request)
+	DeleteUser(w http.ResponseWriter, r *http.Request)
 }
 
 type userController struct {
@@ -98,9 +100,10 @@ func (c *userController) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *userController) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		helper.ResponseJsonError(w, http.StatusBadRequest, "id is required")
+		helper.ResponseJsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -119,4 +122,21 @@ func (c *userController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.ResponseJsonSuccess(w, http.StatusOK, "User has been updated", data)
+}
+
+func (c *userController) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		helper.ResponseJsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	data, err := c.userService.DeleteById(id)
+	if err != nil {
+		helper.ResponseJsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helper.ResponseJsonSuccess(w, http.StatusOK, "User has been deleted", data)
 }

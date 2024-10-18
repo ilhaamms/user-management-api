@@ -19,6 +19,7 @@ type UserService interface {
 	Login(user request.UserLogin) (*response.UserLoginResponse, error)
 	FindAll(page, limit int) (*[]response.User, int, error)
 	UpdateById(id int, user request.UserUpdate) (*response.User, error)
+	DeleteById(id int) (*response.User, error)
 }
 
 type userService struct {
@@ -149,4 +150,17 @@ func (s *userService) UpdateById(id int, user request.UserUpdate) (*response.Use
 	}
 
 	return dataUser, nil
+}
+
+func (s *userService) DeleteById(id int) (*response.User, error) {
+	if id <= 0 {
+		return nil, errors.New("id must be greater than 0")
+	}
+
+	dataUser, err := s.userRepository.DeleteById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dataUser, nil
 }

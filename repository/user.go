@@ -14,6 +14,7 @@ type UserRepository interface {
 	FindByEmailLogin(email string) (*entity.User, error)
 	FindAll() ([]response.User, error)
 	UpdateById(id int, user request.UserUpdate) (*response.User, error)
+	DeleteById(id int) (response.User, error)
 }
 
 type userRepository struct {
@@ -90,4 +91,21 @@ func (r *userRepository) UpdateById(id int, user request.UserUpdate) (*response.
 		Name:  user.Name,
 		Email: user.Email,
 	}, nil
+}
+
+func (r *userRepository) DeleteById(id int) (response.User, error) {
+	row := r.db.QueryRow("SELECT name, email FROM user WHERE id = ?", id)
+
+	var user response.User
+	err := row.Scan(&user.Name, &user.Email)
+	if err != nil {
+		return user, err
+	}
+
+	_, err = r.db.Exec("DELETE FROM user WHERE id = ?", id)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
