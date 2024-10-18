@@ -13,6 +13,7 @@ git clone https://github.com/ilhaamms/user-management-api.git
 ```
 
 ## Build Image & Create Container
+sebelum menjalanka docker compose create pastikan docker dilaptop kalian sudah running. 
 jadi tidak perlu install aplikasi/library yang dibutuhkan secara manual, karna sudah langsung otomatis terdownload ketika menjalankan docker compose create
 ```bash
 docker compose create
