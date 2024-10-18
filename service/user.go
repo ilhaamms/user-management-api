@@ -18,6 +18,7 @@ type UserService interface {
 	Register(user request.UserRegister) (*response.UserRegisterResponse, error)
 	Login(user request.UserLogin) (*response.UserLoginResponse, error)
 	FindAll(page, limit int) (*[]response.User, int, error)
+	UpdateById(id int, user request.UserUpdate) (*response.User, error)
 }
 
 type userService struct {
@@ -127,4 +128,25 @@ func (s *userService) FindAll(page, limit int) (*[]response.User, int, error) {
 	users = users[startIndex:endIndex]
 
 	return &users, totalPages, nil
+}
+
+func (s *userService) UpdateById(id int, user request.UserUpdate) (*response.User, error) {
+	if user.Name == "" || user.Email == "" {
+		return nil, errors.New("Name and Email are required")
+	}
+
+	if len(user.Name) < 3 {
+		return nil, errors.New("Name must be at least 3 characters")
+	}
+
+	if !strings.Contains(user.Email, "@") {
+		return nil, errors.New("Email is not valid")
+	}
+
+	dataUser, err := s.userRepository.UpdateById(id, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return dataUser, nil
 }

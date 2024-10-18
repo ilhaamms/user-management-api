@@ -16,6 +16,7 @@ type UserController interface {
 	Register(w http.ResponseWriter, r *http.Request)
 	Login(w http.ResponseWriter, r *http.Request)
 	GetAllUsers(w http.ResponseWriter, r *http.Request)
+	UpdateUser(w http.ResponseWriter, r *http.Request)
 }
 
 type userController struct {
@@ -94,4 +95,28 @@ func (c *userController) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.ResponseJsonSuccessWithPagination(w, http.StatusOK, "Success get all users", page, limit, totalPages, data)
+}
+
+func (c *userController) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		helper.ResponseJsonError(w, http.StatusBadRequest, "id is required")
+		return
+	}
+
+	user := request.UserUpdate{}
+
+	err = json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		helper.ResponseJsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	data, err := c.userService.UpdateById(id, user)
+	if err != nil {
+		helper.ResponseJsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helper.ResponseJsonSuccess(w, http.StatusOK, "User has been updated", data)
 }

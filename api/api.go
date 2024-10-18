@@ -27,6 +27,7 @@ func (a *API) RegisterRoutes() *mux.Router {
 	users := mux.PathPrefix("/api/v1").Subrouter()
 	users.Use(middleware.Auth)
 	users.HandleFunc("/users", a.userController.GetAllUsers).Methods(http.MethodGet)
+	users.HandleFunc("/users", a.userController.UpdateUser).Methods(http.MethodPatch)
 
 	return mux
 }

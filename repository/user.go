@@ -13,6 +13,7 @@ type UserRepository interface {
 	FindByEmailRegister(email string) (response.User, error)
 	FindByEmailLogin(email string) (*entity.User, error)
 	FindAll() ([]response.User, error)
+	UpdateById(id int, user request.UserUpdate) (*response.User, error)
 }
 
 type userRepository struct {
@@ -77,4 +78,16 @@ func (r *userRepository) FindAll() ([]response.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *userRepository) UpdateById(id int, user request.UserUpdate) (*response.User, error) {
+	_, err := r.db.Exec("UPDATE user SET name = ?, email = ? WHERE id = ?", user.Name, user.Email, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response.User{
+		Name:  user.Name,
+		Email: user.Email,
+	}, nil
 }
