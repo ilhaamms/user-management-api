@@ -21,6 +21,7 @@ func (a *API) RegisterRoutes() *mux.Router {
 
 	api := mux.PathPrefix("/api/v1").Subrouter()
 	api.HandleFunc("/user/register", a.userController.Register).Methods(http.MethodPost)
+	api.HandleFunc("/user/login", a.userController.Login).Methods(http.MethodPost)
 
 	return mux
 }
