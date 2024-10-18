@@ -132,6 +132,11 @@ func (s *userService) FindAll(page, limit int) (*[]response.User, int, error) {
 }
 
 func (s *userService) UpdateById(id int, user request.UserUpdate) (*response.User, error) {
+
+	if id <= 0 {
+		return nil, errors.New("id must be greater than 0")
+	}
+
 	if user.Name == "" || user.Email == "" {
 		return nil, errors.New("Name and Email are required")
 	}
@@ -146,7 +151,11 @@ func (s *userService) UpdateById(id int, user request.UserUpdate) (*response.Use
 
 	dataUser, err := s.userRepository.UpdateById(id, user)
 	if err != nil {
-		return nil, err
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			return nil, errors.New("Email already exists")
+		} else {
+			return nil, errors.New("User not found")
+		}
 	}
 
 	return dataUser, nil
@@ -159,7 +168,7 @@ func (s *userService) DeleteById(id int) (*response.User, error) {
 
 	dataUser, err := s.userRepository.DeleteById(id)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("User not found")
 	}
 
 	return &dataUser, nil

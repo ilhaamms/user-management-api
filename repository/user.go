@@ -62,7 +62,7 @@ func (r *userRepository) FindByEmailLogin(email string) (*entity.User, error) {
 }
 
 func (r *userRepository) FindAll() ([]response.User, error) {
-	rows, err := r.db.Query("SELECT name, email FROM user")
+	rows, err := r.db.Query("SELECT id, name, email FROM user")
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (r *userRepository) FindAll() ([]response.User, error) {
 	var users []response.User
 	for rows.Next() {
 		var user response.User
-		err := rows.Scan(&user.Name, &user.Email)
+		err := rows.Scan(&user.Id, &user.Name, &user.Email)
 		if err != nil {
 			return nil, err
 		}
@@ -82,22 +82,28 @@ func (r *userRepository) FindAll() ([]response.User, error) {
 }
 
 func (r *userRepository) UpdateById(id int, user request.UserUpdate) (*response.User, error) {
+
 	_, err := r.db.Exec("UPDATE user SET name = ?, email = ? WHERE id = ?", user.Name, user.Email, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &response.User{
-		Name:  user.Name,
-		Email: user.Email,
-	}, nil
+	row := r.db.QueryRow("SELECT id, name, email FROM user WHERE id = ?", id)
+
+	var userData response.User
+	err = row.Scan(&userData.Id, &userData.Name, &userData.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userData, nil
 }
 
 func (r *userRepository) DeleteById(id int) (response.User, error) {
-	row := r.db.QueryRow("SELECT name, email FROM user WHERE id = ?", id)
+	row := r.db.QueryRow("SELECT id, name, email FROM user WHERE id = ?", id)
 
 	var user response.User
-	err := row.Scan(&user.Name, &user.Email)
+	err := row.Scan(&user.Id, &user.Name, &user.Email)
 	if err != nil {
 		return user, err
 	}
